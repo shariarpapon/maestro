@@ -1,7 +1,7 @@
-﻿using DocMaestro.Core;
-using DocMaestro.ErrorHandling;
+﻿using Maestro.Core;
+using Maestro.ErrorHandling;
 
-namespace DocMaestro
+namespace Maestro
 {
     public static class MaestroMain
     {

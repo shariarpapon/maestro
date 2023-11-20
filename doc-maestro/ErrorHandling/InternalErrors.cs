@@ -1,4 +1,4 @@
-﻿namespace DocMaestro.ErrorHandling
+﻿namespace Maestro.ErrorHandling
 {
     public static class InternalErrors
     {

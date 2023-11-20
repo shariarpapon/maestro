@@ -1,4 +1,4 @@
-﻿namespace DocMaestro.Core
+﻿namespace Maestro.Core
 {
     public sealed class MaestroMessage
     {

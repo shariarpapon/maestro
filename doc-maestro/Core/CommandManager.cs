@@ -1,6 +1,6 @@
-﻿using DocMaestro.ErrorHandling;
+﻿using Maestro.ErrorHandling;
 
-namespace DocMaestro.Core.Commands
+namespace Maestro.Core.Commands
 {
     internal static class CommandManager
     {

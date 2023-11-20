@@ -1,6 +1,6 @@
-﻿using DocMaestro.Core.Commands;
+﻿using Maestro.Core.Commands;
 
-namespace DocMaestro.Core
+namespace Maestro.Core
 {
     public class MaestroTerminal
     {

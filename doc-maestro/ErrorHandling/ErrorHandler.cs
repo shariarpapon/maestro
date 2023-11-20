@@ -1,6 +1,6 @@
-﻿using DocMaestro.Core;
+﻿using Maestro.Core;
 
-namespace DocMaestro.ErrorHandling
+namespace Maestro.ErrorHandling
 {
     public static class ErrorHandler
     {

@@ -1,4 +1,4 @@
-﻿namespace DocMaestro.Core.Commands
+﻿namespace Maestro.Core.Commands
 {
     internal sealed class MaestroCommandDefinition
     {
