@@ -9,6 +9,7 @@ namespace Maestro.Core
          "|       Maestro Terminal      |\n" +
          "+=============================+\n" +
          "###############################\n\n";
+
         private readonly MaestroMessage _introMessage = new MaestroMessage(INTRO_TITLE, ConsoleColor.Cyan, default);
         private readonly Queue<MaestroMessage> _messageBuffer;
         private bool _running = true;
@@ -48,14 +49,7 @@ namespace Maestro.Core
         {
             string input = Console.ReadLine()!;
             if (!string.IsNullOrEmpty(input))
-            {
-                MaestroMessage[] output = null!;
-                if (CommandManager.TryParseAndExecute(input, out output))
-                {
-                    foreach (MaestroMessage m in output)
-                        PushMessage(m);
-                }
-            }
+                CommandManager.ParseAndExecute(input, this);
         }
 
         private bool PeekMessage() 

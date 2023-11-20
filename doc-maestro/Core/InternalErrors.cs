@@ -1,4 +1,4 @@
-﻿namespace Maestro.ErrorHandling
+﻿namespace Maestro.Core
 {
     public static class InternalErrors
     {

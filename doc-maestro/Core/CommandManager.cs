@@ -1,4 +1,4 @@
-﻿using Maestro.ErrorHandling;
+﻿using Maestro.Core;
 
 namespace Maestro.Core.Commands
 {
@@ -8,43 +8,51 @@ namespace Maestro.Core.Commands
         private const string COMMAND_SEPERATOR = "&";
         private const string ARGUMENT_SEPERATOR = ";";
 
-        private enum MaestroCommand
+        private enum CommandKeywords
         {
             gen,
             help,
             cls,
         }
 
-        private static readonly Dictionary<string, MaestroCommandDefinition> Commands = new Dictionary<string, MaestroCommandDefinition>()
+        private static readonly Dictionary<string, CommandInfo> Commands = new Dictionary<string, CommandInfo>()
         {
-            { MaestroCommand.gen.ToString(), new(2) },
-            { MaestroCommand.help.ToString(), new(0) },
-            { MaestroCommand.cls.ToString(), new(0) },
+            { CommandKeywords.gen.ToString(), new(2) },
+            { CommandKeywords.help.ToString(), new(0) },
+            { CommandKeywords.cls.ToString(), new(0) },
         };
 
         //TODO: Fix command and argument parsing
-        internal static bool TryParseAndExecute(string input, out MaestroMessage[] output)
+        internal static bool ParseAndExecute(string input, MaestroTerminal commandTerminal)
         {
             string[] cmdArray = input.Split(COMMAND_SEPERATOR);
-            output = new MaestroMessage[cmdArray.Length];
             for (int i = 0; i < cmdArray.Length; i++)
             {
                 string cmd = cmdArray[i];
                 string cmdKeyword = PraseCommandKeyword(cmd);
                 if (!Commands.ContainsKey(cmdKeyword))
-                    return ErrorHandler.PushError(new InternalErrors.InvalidCommandError(cmdKeyword));
-
-                MaestroCommandDefinition cmdDefinition = Commands[cmdKeyword];
+                {
+                    commandTerminal.PushMessage(new InternalErrors.InvalidCommandError(cmdKeyword));
+                    return false;
+                }
+                CommandInfo info = Commands[cmdKeyword];
                 string[] args = null!;
-                if (cmdDefinition.argumentCount > 0)
+                if (info.argumentCount > 0)
                 {
                     args = cmd.Split(ARGUMENT_SEPERATOR);
-                    if (args.Length > cmdDefinition.argumentCount)
-                        return ErrorHandler.PushError(new InternalErrors.ArgumentOverflowError(cmd));
-                    else if (args.Length < cmdDefinition.argumentCount)
-                        return ErrorHandler.PushError(new InternalErrors.InsufficientArgumentError(cmd));
+                    if (args.Length > info.argumentCount)
+                    {
+                        commandTerminal.PushMessage(new InternalErrors.ArgumentOverflowError(cmdKeyword));
+                        return false;
+                    }
+                    else if (args.Length < info.argumentCount)
+                    {
+                        commandTerminal.PushMessage(new InternalErrors.InsufficientArgumentError(cmdKeyword));
+                        return false;
+                    }
+
                 }
-                if (!Execute(cmd, args, out output[i]))
+                if (!Execute(cmd, args, commandTerminal))
                     return false;
                 
             }
@@ -63,11 +71,13 @@ namespace Maestro.Core.Commands
             return buffer;
         }
 
-        private static bool Execute(string cmd, string[] args, out MaestroMessage output) 
+        private static bool Execute(string cmd, string[] args, MaestroTerminal commandTerminal) 
         {
-            output = new MaestroMessage($"successfully executed <{cmd}>", ConsoleColor.Yellow, default);
+            commandTerminal.PushMessage(CommandExecutionSuccessMessage(cmd));
             return true;
         }
 
+        private static MaestroMessage CommandExecutionSuccessMessage(string cmd)
+            => new MaestroMessage($"successfully executed <{cmd}>", ConsoleColor.Green, default);
     }
 }

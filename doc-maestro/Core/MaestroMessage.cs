@@ -1,6 +1,6 @@
 ﻿namespace Maestro.Core
 {
-    public sealed class MaestroMessage
+    public class MaestroMessage
     {
         public ConsoleColor ForegroundColor { get; private set; } = Console.ForegroundColor;
         public ConsoleColor BackgroundColor { get; private set; } = Console.BackgroundColor;

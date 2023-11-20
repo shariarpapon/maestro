@@ -1,9 +1,9 @@
 ﻿namespace Maestro.Core.Commands
 {
-    internal sealed class MaestroCommandDefinition
+    internal sealed class CommandInfo
     {
         internal int argumentCount = 0;
-        internal MaestroCommandDefinition(int argumentCount) 
+        internal CommandInfo(int argumentCount) 
         {
             this.argumentCount = argumentCount;
         }

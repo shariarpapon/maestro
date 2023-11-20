@@ -1,6 +1,4 @@
 ﻿using Maestro.Core;
-using Maestro.ErrorHandling;
-
 namespace Maestro
 {
     public static class MaestroMain
@@ -16,13 +14,8 @@ namespace Maestro
             }
             else 
             {
-                ErrorHandler.PushError(new InternalErrors.TerminalAlreadyExistsError(ActiveTerminal.Title));
+                ActiveTerminal.PushMessage(new InternalErrors.TerminalAlreadyExistsError(ActiveTerminal.Title));
             }
-        }
-
-        public static void Debug(string msg) 
-        {
-            ActiveTerminal.PushMessage(new MaestroMessage(msg, ConsoleColor.DarkMagenta, default));
         }
     }
 }

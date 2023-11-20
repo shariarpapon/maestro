@@ -6,7 +6,11 @@
     <RootNamespace>Maestro</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <StartupObject>Maestro.MaestroMain</StartupObject>
+    <StartupObject></StartupObject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="InternalErrors\" />
+  </ItemGroup>
 
 </Project>
