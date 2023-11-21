@@ -9,8 +9,4 @@
     <StartupObject></StartupObject>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="InternalErrors\" />
-  </ItemGroup>
-
 </Project>

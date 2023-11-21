@@ -1,6 +1,4 @@
-﻿using Maestro.Core.Commands;
-
-namespace Maestro.Core
+﻿namespace Maestro.Core
 {
     public class MaestroTerminal
     {
@@ -8,7 +6,7 @@ namespace Maestro.Core
          "+=============================+\n" +
          "|       Maestro Terminal      |\n" +
          "+=============================+\n" +
-         "###############################\n\n";
+         "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
 
         private readonly MaestroMessage _introMessage = new MaestroMessage(INTRO_TITLE, ConsoleColor.Cyan, default);
         private readonly Queue<MaestroMessage> _messageBuffer;
@@ -40,12 +38,13 @@ namespace Maestro.Core
                 LogMessage(">> ", false);
                 if (PeekMessage()) 
                     continue;
-                CaptureInput();
+
+                ScanCommands();
                 
             }
         }
 
-        private void CaptureInput() 
+        private void ScanCommands() 
         {
             string input = Console.ReadLine()!;
             if (!string.IsNullOrEmpty(input))
@@ -81,12 +80,12 @@ namespace Maestro.Core
         {
             ConsoleColor prevFg = Console.ForegroundColor;
             ConsoleColor prevBg = Console.BackgroundColor;
-            Console.ForegroundColor = message.ForegroundColor;
-            Console.BackgroundColor = message.BackgroundColor;
+            Console.ForegroundColor = message.foregroundColor;
+            Console.BackgroundColor = message.backgroundColor;
             if (newLine)
-                Console.WriteLine(message.Message);
+                Console.WriteLine(message.message);
             else
-                Console.Write(message.Message);
+                Console.Write(message.message);
             Console.ForegroundColor = prevFg; ;
             Console.BackgroundColor = prevBg;
         }

@@ -2,22 +2,33 @@
 {
     public class MaestroMessage
     {
-        public ConsoleColor ForegroundColor { get; private set; } = Console.ForegroundColor;
-        public ConsoleColor BackgroundColor { get; private set; } = Console.BackgroundColor;
-        public string Message { get; private set; } = null;
+        public readonly ConsoleColor foregroundColor = Console.ForegroundColor;
+        public readonly ConsoleColor backgroundColor = Console.BackgroundColor;
+        public readonly string message = null!;
 
-        public MaestroMessage() { }
-
-        public MaestroMessage(string message) 
+        public MaestroMessage(string message)
         {
-            Message = message;
+            this.message = message;
         }
 
         public MaestroMessage(string message, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
         {
-            Message = message;
-            ForegroundColor = foregroundColor;
-            BackgroundColor = backgroundColor;
+            this.message = message;
+            this.foregroundColor = foregroundColor;
+            this.backgroundColor = backgroundColor;
         }
+
+        public MaestroMessage(string message, object context)
+        {
+            this.message = string.Format("{0} <{1}>", message, context);
+        }
+
+        public MaestroMessage(string message, object context, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+            :this(message, context)
+        {
+            this.foregroundColor = foregroundColor;
+            this.backgroundColor = backgroundColor;
+        }
+
     }
 }
