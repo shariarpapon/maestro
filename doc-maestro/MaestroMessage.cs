@@ -1,6 +1,6 @@
-﻿namespace Maestro.Core
+﻿namespace Maestro
 {
-    public class MaestroMessage
+    public sealed class MaestroMessage
     {
         public readonly ConsoleColor foregroundColor = Console.ForegroundColor;
         public readonly ConsoleColor backgroundColor = Console.BackgroundColor;
@@ -20,11 +20,11 @@
 
         public MaestroMessage(string message, object context)
         {
-            this.message = string.Format("{0} <{1}>", message, context);
+            this.message = context == null ? message : string.Format("{0} <{1}>", message, context);
         }
 
         public MaestroMessage(string message, object context, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
-            :this(message, context)
+            : this(message, context)
         {
             this.foregroundColor = foregroundColor;
             this.backgroundColor = backgroundColor;

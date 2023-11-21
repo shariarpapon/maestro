@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Maestro.Core
+namespace Maestro
 {
     internal class MaestroParser
     {
@@ -8,14 +8,14 @@ namespace Maestro.Core
         private char _commandDelimiter;
         private char _argumentDelimiter = ' ';
 
-        internal MaestroParser(string source, char commandDelimiter, char argumentDelimiter) 
+        internal MaestroParser(string source, char commandDelimiter, char argumentDelimiter)
         {
             _source = FormatSource(source);
             _commandDelimiter = commandDelimiter;
             _argumentDelimiter = argumentDelimiter;
         }
 
-        internal string[] ParseStatements() 
+        internal string[] ParseStatements()
         {
             string buffer = _source;
             buffer = TrimRightOf(buffer, _commandDelimiter);
@@ -23,31 +23,31 @@ namespace Maestro.Core
             return buffer.Split(_commandDelimiter);
         }
 
-        internal string[] ParseArguments(string statement) 
+        internal string[] ParseArguments(string statement)
         {
             string buffer = statement.Trim();
             string[] args = buffer.Split(_argumentDelimiter);
             return args;
         }
 
-        private static string FormatSource(string source) 
+        private static string FormatSource(string source)
         {
             string trimmedSource = source.Trim();
             StringBuilder buffer = new StringBuilder(trimmedSource.Length);
             bool trim = false;
-            for (int i = 0; i < trimmedSource.Length; i++) 
+            for (int i = 0; i < trimmedSource.Length; i++)
             {
                 char c = trimmedSource[i];
                 if (char.IsWhiteSpace(c))
                 {
                     if (trim) continue;
-                    else 
-                    { 
+                    else
+                    {
                         trim = true;
                         buffer.Append(c);
                     }
                 }
-                else 
+                else
                 {
                     if (trim) trim = false;
                     buffer.Append(c);
@@ -56,11 +56,11 @@ namespace Maestro.Core
             return buffer.ToString();
         }
 
-        private static string TrimRightOf(string input, char delimiter) 
+        private static string TrimRightOf(string input, char delimiter)
         {
             StringBuilder buffer = new StringBuilder(input.Length);
             bool trim = false;
-            for (int i = 0; i < input.Length; i++) 
+            for (int i = 0; i < input.Length; i++)
             {
                 char c = input[i];
                 if (trim)
@@ -83,11 +83,11 @@ namespace Maestro.Core
             return buffer.ToString();
         }
 
-        private static string TrimLeftOf(string input, char delimiter) 
+        private static string TrimLeftOf(string input, char delimiter)
         {
             StringBuilder buffer = new StringBuilder(input.Length);
             bool trim = false;
-            for (int i = 0; i < input.Length; i++) 
+            for (int i = 0; i < input.Length; i++)
             {
                 char c = input[input.Length - i - 1];
                 if (trim)
