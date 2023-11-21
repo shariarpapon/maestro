@@ -14,7 +14,7 @@ namespace Maestro
             }
             else 
             {
-                ActiveTerminal.PushMessage(new InternalErrors.TerminalAlreadyExistsError(ActiveTerminal.Title));
+                MaestroLogger.Print(new InternalErrors.TerminalAlreadyExistsError(ActiveTerminal.Title));
             }
         }
     }

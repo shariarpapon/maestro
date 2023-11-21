@@ -7,21 +7,14 @@ namespace Maestro.Core
         private const char COMMAND_DELIMITER = '&';
         private const char ARGUMENT_DELIMITER = ' ';
 
-        private enum Keyword
+        private static readonly Dictionary<string, CommandAction> CommandActions = new Dictionary<string, CommandAction>()
         {
-            gen,
-            help,
-            cls,
-        }
-
-        private static readonly Dictionary<string, CommandAction> Keywords = new Dictionary<string, CommandAction>()
-        {
-            { Keyword.gen.ToString(), new(2) },
-            { Keyword.help.ToString(), new(0) },
-            { Keyword.cls.ToString(), new(0) },
+            { "gen", new(3) },
+            { "cls", new(1) },
+            { "help", new(1) },
         };
 
-        public static bool ParseAndExecute(string source, MaestroTerminal terminal)
+        internal static bool ParseAndExecute(string source, MaestroTerminal terminal)
         {
             MaestroParser parser = new MaestroParser(source, COMMAND_DELIMITER, ARGUMENT_DELIMITER);
 
@@ -32,27 +25,27 @@ namespace Maestro.Core
                 string[] args = parser.ParseArguments(statement);
                 if (args == null || args.Length <= 0)
                 {
-                    terminal.PushMessage(new InvalidKeywordError(statement));
+                    MaestroLogger.Print(new InvalidKeywordError(statement));
                     return false;
                 }
 
                 string keyword = args[0];
-                if (!Keywords.ContainsKey(keyword))
+                if (!CommandActions.ContainsKey(keyword))
                 {
-                    terminal.PushMessage(new InvalidKeywordError(keyword));
+                    MaestroLogger.Print(new InvalidKeywordError(keyword));
                     return false;
                 }
 
                 int argCount = args.Length;
-                CommandAction info = Keywords[keyword];
+                CommandAction info = CommandActions[keyword];
                 if (argCount > info.RequiredArgCount)
                 {
-                    terminal.PushMessage(new ArgumentOverflowError(keyword));
+                    MaestroLogger.Print(new ArgumentOverflowError(keyword));
                     return false;
                 }
                 else if (argCount < info.RequiredArgCount)
                 {
-                    terminal.PushMessage(new InsufficientArgumentsError(keyword));
+                    MaestroLogger.Print(new InsufficientArgumentsError(keyword));
                     return false;
                 }
 
@@ -64,7 +57,7 @@ namespace Maestro.Core
 
         private static bool Execute(string cmd, string[] args, MaestroTerminal commandTerminal) 
         {
-            commandTerminal.PushMessage(CommandExecutionSuccessMessage(cmd));
+            MaestroLogger.Print(CommandExecutionSuccessMessage(cmd));
             return true;
         }
 

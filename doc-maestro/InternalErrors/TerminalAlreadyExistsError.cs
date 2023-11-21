@@ -1,4 +1,6 @@
-﻿namespace Maestro.InternalErrors
+﻿using Maestro.Core;
+
+namespace Maestro.InternalErrors
 {
     public sealed class TerminalAlreadyExistsError : ErrorMessage
     {

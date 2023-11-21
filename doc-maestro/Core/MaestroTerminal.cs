@@ -10,19 +10,26 @@
 
         private readonly MaestroMessage _introMessage = new MaestroMessage(INTRO_TITLE, ConsoleColor.Cyan, default);
         private readonly Queue<MaestroMessage> _messageBuffer;
+        private MaestroLogger _logger;
         private bool _running = true;
         public string Title { get; } = "terminal";
 
         public MaestroTerminal(string title) 
         {
             Title = title;
+            _logger = new MaestroLogger(this);
             _messageBuffer = new Queue<MaestroMessage>();
+        }
+
+        ~MaestroTerminal() 
+        {
+            _logger.Dispose();
         }
 
         public void Initiate() 
         {
             Console.Title = Title;
-            LogMessage(_introMessage);
+            TerminalWrite(_introMessage);
             StartTerminal();
         }
 
@@ -35,12 +42,11 @@
         {
             while (_running) 
             {
-                LogMessage(">> ", false);
+                TerminalWrite(">> ", false);
                 if (PeekMessage()) 
                     continue;
 
                 ScanCommands();
-                
             }
         }
 
@@ -55,28 +61,28 @@
         {
             if (_messageBuffer.Count > 0)
             {
-                LogMessage(_messageBuffer.Dequeue(), true);
+                TerminalWrite(_messageBuffer.Dequeue(), true);
                 return true;
             }
             else return false;
         }
 
-        public void PushMessage(string message)
+        internal void PushMessage(string message)
         {
             PushMessage(new MaestroMessage(message));
         }
 
-        public void PushMessage(MaestroMessage message)
+        internal void PushMessage(MaestroMessage message)
         {
             _messageBuffer.Enqueue(message);
         }
 
-        private void LogMessage(string message, bool newLine = false)
+        private void TerminalWrite(string message, bool newLine = false)
         {
-            LogMessage(new MaestroMessage(message), newLine);
+            TerminalWrite(new MaestroMessage(message), newLine);
         }
 
-        private void LogMessage(MaestroMessage message, bool newLine = false)
+        private void TerminalWrite(MaestroMessage message, bool newLine = false)
         {
             ConsoleColor prevFg = Console.ForegroundColor;
             ConsoleColor prevBg = Console.BackgroundColor;
@@ -90,7 +96,7 @@
             Console.BackgroundColor = prevBg;
         }
 
-        public void Dispose() 
+        public void Exit() 
         {
             _messageBuffer.Clear();
             _running = false;

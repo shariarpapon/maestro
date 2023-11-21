@@ -2,10 +2,10 @@
 {
     internal class CommandAction
     {
-        internal int RequiredArgCount { get; }
-        internal CommandAction(int argCountIncludingCmd) 
+        internal uint RequiredArgCount { get; }
+        internal CommandAction(uint argCountIncludingCmd) 
         {
-            RequiredArgCount = argCountIncludingCmd + 1;
+            RequiredArgCount = argCountIncludingCmd;
         }
     }
 }
