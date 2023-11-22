@@ -2,20 +2,57 @@
 
 namespace Maestro
 {
-    internal class MaestroParser
+    public class ParsedCommand 
     {
-        private string _source;
-        private char _commandDelimiter;
-        private char _argumentDelimiter = ' ';
-
-        internal MaestroParser(string source, char commandDelimiter, char argumentDelimiter)
+        public readonly string keyword;
+        public readonly string[] arguments;
+        public ParsedCommand(string keyword, string[] arguments) 
         {
+            this.keyword = keyword;
+            this.arguments = arguments;
+        }
+    }
+
+    public class MaestroParser
+    {
+        private readonly string _source;
+        private readonly char _commandDelimiter;
+        private readonly char _argumentDelimiter;
+        public readonly ParsedCommand[] parsedCommands;
+
+        private const char _DEFAULT_COMMAND_DELIMITER = '&';
+        private const char _DEFAULT_ARGUMENT_DELIMITER = ' ';
+
+        public MaestroParser(string source)
+            :this(source, _DEFAULT_COMMAND_DELIMITER, _DEFAULT_ARGUMENT_DELIMITER) {}
+
+        public MaestroParser(string source, char commandDelimiter, char argumentDelimiter)
+        {
+            if (string.IsNullOrEmpty(source))
+                throw new System.Exception("Cannot initialize parser, source string cannot be null.");
             _source = FormatSource(source);
             _commandDelimiter = commandDelimiter;
             _argumentDelimiter = argumentDelimiter;
+            parsedCommands = ParseCommands();
         }
 
-        internal string[] ParseStatements()
+        public ParsedCommand[] ParseCommands() 
+        {
+            string[] commandStatements = ParseStatements();
+            if (commandStatements.Length <= 0)
+                return null!;
+            ParsedCommand[] parsed = new ParsedCommand[commandStatements.Length];
+            for (int i = 0; i < commandStatements.Length; i++)
+            {
+                string[] args = ParseArguments(commandStatements[i]);
+                string keyword = args[0];
+                args = args.Skip(1).ToArray();
+                parsed[i] = new ParsedCommand(keyword, args);
+            }
+            return parsed;
+        }
+
+        private string[] ParseStatements()
         {
             string buffer = _source;
             buffer = TrimRightOf(buffer, _commandDelimiter);
@@ -23,7 +60,7 @@ namespace Maestro
             return buffer.Split(_commandDelimiter);
         }
 
-        internal string[] ParseArguments(string statement)
+        private string[] ParseArguments(string statement)
         {
             string buffer = statement.Trim();
             string[] args = buffer.Split(_argumentDelimiter);
