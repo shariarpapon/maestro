@@ -4,26 +4,26 @@
     {
         public readonly ConsoleColor foregroundColor = Console.ForegroundColor;
         public readonly ConsoleColor backgroundColor = Console.BackgroundColor;
-        public readonly string message = null!;
+        public readonly object message = null!;
 
-        public MaestroMessage(string message)
+        public MaestroMessage(object message)
         {
             this.message = message;
         }
 
-        public MaestroMessage(string message, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+        public MaestroMessage(object message, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
         {
             this.message = message;
             this.foregroundColor = foregroundColor;
             this.backgroundColor = backgroundColor;
         }
 
-        public MaestroMessage(string message, object context)
+        public MaestroMessage(object message, object context)
         {
             this.message = context == null ? message : string.Format("{0} <{1}>", message, context);
         }
 
-        public MaestroMessage(string message, object context, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+        public MaestroMessage(object message, object context, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
             : this(message, context)
         {
             this.foregroundColor = foregroundColor;

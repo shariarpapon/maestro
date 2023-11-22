@@ -10,8 +10,8 @@ namespace Maestro
          "+=============================+\n" +
          "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
 
-        public static bool IsReady { get; private set; } = false;
         private static MaestroTerminal _Instance = null!;
+        private static bool _IsProcessing = false;
         private readonly MaestroMessage _introMessage = new MaestroMessage(INTRO_TITLE, ConsoleColor.Cyan, default);
         private bool _running;
         private string _title;
@@ -50,6 +50,30 @@ namespace Maestro
             StartTerminal();
         }
 
+        public static Thread InitiateOnSeperateThread(string title)
+        {
+            if (_Instance != null || _IsProcessing)
+            {
+                MaestroLogger.PrintError(BuiltInMessages.TerminalAlreadyExistsError, _Instance!._title);
+                return null!;
+            }
+            else
+            {
+                _IsProcessing = true;
+                _Instance = new MaestroTerminal(title);
+            }
+            
+            _Instance._selfInvoker = GenerateSelfInvoker();
+            AuthorizeInvoker(_Instance._selfInvoker);
+            AuthorizeInvoker(_Instance._logger);
+            TerminalWrite(_Instance._introMessage);
+            Console.Title = _Instance._title;
+
+            Thread thread = new Thread(StartTerminal);
+            thread.Start();
+            return thread;
+        }
+
         private static void AuthorizeInvoker(object invoker)
         {
             _Instance._authorizedInvokers.Add(invoker);
@@ -58,7 +82,6 @@ namespace Maestro
         private static void StartTerminal()
         {
             _Instance._running = true;
-            IsReady = true;
             while (_Instance._running)
             {
                 TerminalWrite(">> ", false);
@@ -158,16 +181,16 @@ namespace Maestro
         {
             if (!IsInvokerAuthorized(requester))
                 return false;
-            _Instance._logger.Dispose();
+            _Instance!._logger.Dispose();
             _Instance._selfInvoker = null!;
             _Instance = null!;
-            IsReady = false;
+            _IsProcessing = false;
             return true;
         }
 
         public static void Close() 
         {
-            RequestClearTerminal(_Instance._selfInvoker);
+            RequestClearTerminal(_Instance!._selfInvoker);
             RequestDisposeTerminal(_Instance._selfInvoker);
         }
     }

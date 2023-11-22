@@ -2,9 +2,9 @@
 {
     public sealed class MaestroLogger
     {
-        public const ConsoleColor WARNING_FG = ConsoleColor.Yellow;
-        public const ConsoleColor ERROR_FG = ConsoleColor.DarkRed;
-        public const ConsoleColor INFO_FG = ConsoleColor.DarkGray;
+        private const ConsoleColor WARNING_FG = ConsoleColor.Yellow;
+        private const ConsoleColor ERROR_FG = ConsoleColor.DarkRed;
+        private const ConsoleColor INFO_FG = ConsoleColor.DarkGray;
         private static MaestroLogger _Instance = null!;
 
         public MaestroLogger(MaestroTerminal terminal)
@@ -27,27 +27,27 @@
             MaestroTerminal.RequestPushMessage(message, _Instance);
         }
 
-        public static void Print(string message)
+        public static void Print(object message)
         {
             PrintFormat(new MaestroMessage(message));
         }
 
-        public static void Print(string message, object context)
+        public static void Print(object message, object context)
         {
             PrintFormat(new MaestroMessage(message, context));
         }
 
-        public static void PrintInfo(string message, object context)
+        public static void PrintInfo(object message, object context)
         {
             PrintFormat(new MaestroMessage(message, context, INFO_FG, default));
         }
 
-        public static void PrintError(string message, object context)
+        public static void PrintError(object message, object context)
         {
             PrintFormat(new MaestroMessage(message, context, ERROR_FG, default));
         }
 
-        public static void PrintWarning(string message, object context)
+        public static void PrintWarning(object message, object context)
         {
             PrintFormat(new MaestroMessage(message, context, WARNING_FG, default));
         }
