@@ -5,10 +5,11 @@
         private const char COMMAND_DELIMITER = '&';
         private const char ARGUMENT_DELIMITER = ' ';
 
-        private static readonly Dictionary<string, CommandAction> CommandActions = new Dictionary<string, CommandAction>()
+        private static readonly CommandAction[] CommandActions = new CommandAction[] 
         {
-            { "cls",  new Command_CLS() },
-            { "exit", new Command_Exit() }
+            new Command_CLS(),
+            new Command_Exit(),
+            new Command_Gen()
         };
 
         internal static bool ParseAndExecute(string source, object invokeAuthorizer)
@@ -27,22 +28,20 @@
                 }
 
                 string keyword = args[0];
-                if (!CommandActions.ContainsKey(keyword))
-                {
-                    MaestroLogger.PrintError(BuiltInMessages.InvalidKeywordError, keyword);
+                if (!IsValidKeyword(keyword))
                     return false;
-                }
 
                 //Minus 1 because the command keyword itself is inlcuded int he array.
                 int argCount = args.Length - 1;
-                CommandAction action = CommandActions[keyword];
+                CommandAction? action = Array.Find(CommandActions, c => c.Keyword == keyword)!;
+
                 if (argCount > action.RequiredArgCount)
                 {
                     MaestroLogger.PrintError(BuiltInMessages.ArgumentOverflowError, keyword);
                     return false;
                 }
                 else if (argCount < action.RequiredArgCount)
-                {
+                { 
                     MaestroLogger.PrintError(BuiltInMessages.InsufficientArgumentsError, keyword);
                     return false;
                 }
@@ -56,9 +55,21 @@
         private static bool Execute(object invokeAuthorizer, CommandAction action, string[] args)
         {
             if (action.Invoke(invokeAuthorizer, args))
+            {
                 MaestroLogger.PrintInfo("command executed", args[0]);
+                return true;
+            }
+            return false;
+        }
 
-            return true;
+        private static bool IsValidKeyword(string keyword) 
+        {
+            for (int i = 0; i < CommandActions.Length; i++)
+                if (CommandActions[i].Keyword.ToLower() == keyword.ToLower())
+                    return true;
+
+            MaestroLogger.PrintError(BuiltInMessages.InvalidKeywordError, keyword);
+            return false;
         }
 
     }

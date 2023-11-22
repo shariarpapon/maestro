@@ -3,8 +3,6 @@
     public static class BuiltInMessages
     {
         //Errors
-        public const string CommandArgumentCountNotValidError
-            = "command arguments must be greater than or equal to 1 because the command keyword it self is a argument";
         public const string InvalidArgumentError = "invalid argument";
         public const string InvalidKeywordError = "invalid keyword";
         public const string ArgumentOverflowError = "command has too many arguments";

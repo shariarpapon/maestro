@@ -1,9 +1,10 @@
 ﻿namespace Maestro.Commands
 {
-    public sealed class Command_Exit : CommandAction
+    internal sealed class Command_Exit : CommandAction
     {
-        public override uint RequiredArgCount => 0;
-        public override bool Invoke(object invoker, string[] args)
+        internal override string Keyword => "exit";
+        internal override uint RequiredArgCount => 0;
+        internal override bool Invoke(object invoker, string[] args)
         {
             return MaestroTerminal.RequestExit(invoker);
         }

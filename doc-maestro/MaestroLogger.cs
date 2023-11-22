@@ -4,7 +4,7 @@
     {
         private const ConsoleColor WARNING_FG = ConsoleColor.Yellow;
         private const ConsoleColor ERROR_FG = ConsoleColor.DarkRed;
-        private const ConsoleColor INFO_FG = ConsoleColor.DarkGray;
+        private const ConsoleColor INFO_FG = ConsoleColor.Blue;
         private static MaestroLogger _Instance = null!;
 
         public MaestroLogger()
