@@ -13,9 +13,9 @@ namespace Maestro
         private static MaestroTerminal _Instance = null!;
         private static bool _IsProcessing = false;
         private readonly MaestroMessage _introMessage = new MaestroMessage(INTRO_TITLE, ConsoleColor.Cyan, default);
+
         private bool _running;
         private string _title;
-
         private MaestroLogger _logger;
         private readonly HashSet<object> _authorizedInvokers;
         private readonly Queue<MaestroMessage> _messageBuffer;
@@ -24,20 +24,21 @@ namespace Maestro
         private MaestroTerminal(string title)
         {
             _title = title;
-            _logger = new MaestroLogger(this);
+            _logger = new MaestroLogger();
             _messageBuffer = new Queue<MaestroMessage>();
             _authorizedInvokers = new HashSet<object>();
         }
 
         public static void Initiate(string title)
         {
-            if (_Instance == null)
+            if (_Instance == null && !_IsProcessing)
             {
+                _IsProcessing = true;
                 _Instance = new MaestroTerminal(title);
             }
             else
             {
-                MaestroLogger.PrintError(BuiltInMessages.TerminalAlreadyExistsError, _Instance._title);
+                MaestroLogger.PrintError(BuiltInMessages.TerminalAlreadyExistsError, _Instance!._title);
                 return;
             }
 
@@ -50,19 +51,19 @@ namespace Maestro
             StartTerminal();
         }
 
-        public static Thread InitiateOnSeperateThread(string title)
+        public static void InitiateThread(string title)
         {
-            if (_Instance != null || _IsProcessing)
-            {
-                MaestroLogger.PrintError(BuiltInMessages.TerminalAlreadyExistsError, _Instance!._title);
-                return null!;
-            }
-            else
+            if (_Instance == null && !_IsProcessing)
             {
                 _IsProcessing = true;
                 _Instance = new MaestroTerminal(title);
             }
-            
+            else 
+            {
+                MaestroLogger.PrintError(BuiltInMessages.TerminalAlreadyExistsError, _Instance!._title);
+                return;
+            }
+
             _Instance._selfInvoker = GenerateSelfInvoker();
             AuthorizeInvoker(_Instance._selfInvoker);
             AuthorizeInvoker(_Instance._logger);
@@ -71,7 +72,7 @@ namespace Maestro
 
             Thread thread = new Thread(StartTerminal);
             thread.Start();
-            return thread;
+            return;
         }
 
         private static void AuthorizeInvoker(object invoker)
@@ -144,12 +145,12 @@ namespace Maestro
             return string.Format("s-u{0}_g{1}", unixTime, guid);
         }
 
-        public static bool RequestPushMessage(string message, object requester)
+        internal static bool RequestPushMessage(string message, object requester)
         {
             return RequestPushMessage(new MaestroMessage(message), requester);
         }
 
-        public static bool RequestPushMessage(MaestroMessage message, object requester)
+        internal static bool RequestPushMessage(MaestroMessage message, object requester)
         {
             if (!IsInvokerAuthorized(requester))
                 return false;
@@ -158,7 +159,7 @@ namespace Maestro
             return true;
         }
 
-        public static bool RequestExit(object requester)
+        internal static bool RequestExit(object requester)
         {
             if (!IsInvokerAuthorized(requester))
                 return false;
@@ -168,7 +169,7 @@ namespace Maestro
             return true;
         }
 
-        public static bool RequestClearTerminal(object requester)
+        internal static bool RequestClearTerminal(object requester)
         {
             if (!IsInvokerAuthorized(requester))
                 return false;
@@ -177,21 +178,18 @@ namespace Maestro
             return true;
         }
 
-        public static bool RequestDisposeTerminal(object requester)
+        internal static bool RequestDisposeTerminal(object requester)
         {
             if (!IsInvokerAuthorized(requester))
                 return false;
+
+            _Instance._running = false;
+            _Instance._messageBuffer.Clear();
             _Instance!._logger.Dispose();
             _Instance._selfInvoker = null!;
             _Instance = null!;
             _IsProcessing = false;
             return true;
-        }
-
-        public static void Close() 
-        {
-            RequestClearTerminal(_Instance!._selfInvoker);
-            RequestDisposeTerminal(_Instance._selfInvoker);
         }
     }
 }

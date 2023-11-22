@@ -7,7 +7,7 @@
         private const ConsoleColor INFO_FG = ConsoleColor.DarkGray;
         private static MaestroLogger _Instance = null!;
 
-        public MaestroLogger(MaestroTerminal terminal)
+        public MaestroLogger()
         {
             if (_Instance != null)
                 return;
