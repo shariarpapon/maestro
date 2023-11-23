@@ -41,15 +41,19 @@ namespace Maestro
             string[] commandStatements = ParseStatements();
             if (commandStatements.Length <= 0)
                 return null!;
-            ParsedCommand[] parsed = new ParsedCommand[commandStatements.Length];
+            List<ParsedCommand> parsed = new List<ParsedCommand>();
+            HashSet<string> tracker = new HashSet<string>();
             for (int i = 0; i < commandStatements.Length; i++)
             {
+                if (tracker.Contains(commandStatements[i]))
+                    continue;
                 string[] args = ParseArguments(commandStatements[i]);
                 string keyword = args[0];
                 args = args.Skip(1).ToArray();
-                parsed[i] = new ParsedCommand(keyword, args);
+                parsed.Add(new ParsedCommand(keyword, args));
+                tracker.Add(commandStatements[i]);
             }
-            return parsed;
+            return parsed.ToArray();
         }
 
         private string[] ParseStatements()

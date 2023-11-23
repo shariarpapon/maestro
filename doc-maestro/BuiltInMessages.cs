@@ -2,17 +2,28 @@
 {
     public static class BuiltInMessages
     {
-        //Errors
-        public const string InvalidArgumentError = "invalid argument";
-        public const string InvalidKeywordError = "invalid keyword";
-        public const string ArgumentOverflowError = "command has too many arguments";
-        public const string InsufficientArgumentsError = "command has insufficient arguments";
-        public const string NoValidCommandKeywordError = "no valid command keywords found";
-        public const string TerminalAlreadyExistsError = "cannot have multiple instances of terminal";
-        public const string FileNotFoundError = "file not found";
-        public const string DirectoryNotFound = "directory not found";
+        #region Errors
+        public static void InvalidArgumentError(object context) 
+           => MaestroLogger.PrintError("invalid argument", context);
+        public static void InvalidKeywordError(object context)
+            => MaestroLogger.PrintError("invalid keyword", context);
+        public static void ArgumentOverflowError(object context) 
+            => MaestroLogger.PrintError("command has too many arguments", context);
+        public static void InsufficientArgumentsError(object context) 
+            => MaestroLogger.PrintError("command has insufficient arguments", context);
+        public static void NoValidCommandKeywordError(object context)
+            => MaestroLogger.PrintError("no valid command keyword found", context);
+        public static void TerminalAlreadyExistsError(object context)
+            => MaestroLogger.PrintError("cannot have multiple instances of terminal", context);
+        public static void FileNotFoundError(object context)
+            => MaestroLogger.PrintError("file not found", context);
+        public static void DirectoryNotFoundError(object context)
+            => MaestroLogger.PrintError("directory not found", context);
+        #endregion
 
-        //Warnings
-        public const string InvokerNotAuthorizedWarning = "request denied - invoker not authorized";
+        #region Warnings
+        public static void InvokerNotAuthorizedWarning(object context)
+            => MaestroLogger.PrintWarning("request denied, invoker not authorized", context);
+        #endregion
     }
 }

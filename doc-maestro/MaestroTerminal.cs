@@ -74,7 +74,7 @@ namespace Maestro
             }
             else
             {
-                MaestroLogger.PrintError(BuiltInMessages.TerminalAlreadyExistsError, _Instance!._title);
+                BuiltInMessages.TerminalAlreadyExistsError(_Instance!._title);
                 return;
             }
             TerminalWrite(_Instance._introMessage);
@@ -90,7 +90,7 @@ namespace Maestro
             }
             else
             {
-                MaestroLogger.PrintError(BuiltInMessages.TerminalAlreadyExistsError, _Instance!._title);
+                BuiltInMessages.TerminalAlreadyExistsError(_Instance!._title);
                 return;
             }
             TerminalWrite(_Instance._introMessage);
@@ -149,7 +149,7 @@ namespace Maestro
         {
             if (invoker == null || !_Instance._authorizedInvokers.Contains(invoker))
             {
-                MaestroLogger.PrintWarning(BuiltInMessages.InvokerNotAuthorizedWarning, invoker!);
+                BuiltInMessages.InvokerNotAuthorizedWarning(invoker!);
                 return false;
             }
             return true;
@@ -214,20 +214,29 @@ namespace Maestro
             if (!IsInvokerAuthorized(requester))
                 return false;
             StringBuilder buffer = new StringBuilder();
-            buffer.Append("List of commands:\n   ---------------------\n");
+            buffer.Append("\nList of commands:\n#######################\n");
             foreach (var c in _Instance._commandHandler.commandActions)
             {
-                string info = string.Format("       {0}\n" +
-                                            "       {1} arguments\n" +
-                                            "       {2}\n" +
-                                            "      _________________\n", 
-                                            c.Keyword, c.RequiredArgCount,c.Description);
+                string cmdCount = GetCommandCountFormattedString(c.RequiredArgCount);
+                string info = string.Format("{0} {1}\n" +
+                                            "{2}\n" +
+                                            "_________________\n", 
+                                            c.Keyword, cmdCount, c.Description);
                 buffer.Append(info);
             }
             MaestroLogger.PrintInfo(buffer.ToString(), null!);
             return true;
         }
 
+        private static string GetCommandCountFormattedString(uint count) 
+        {
+            StringBuilder buffer = new StringBuilder();
+            for (uint i = 0; i < count; i++)
+                buffer.Append($"<{i+1}> ");
+            return buffer.ToString();
+        }
+
+        #region Default Commands
         private sealed class Command_CLS : CommandAction
         {
             public override string Keyword => "cls";
@@ -263,5 +272,6 @@ namespace Maestro
                 return RequestPrintCommands(invoker);
             }
         }
+        #endregion
     }
 }
