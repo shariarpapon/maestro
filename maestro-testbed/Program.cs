@@ -8,7 +8,24 @@ public static class Program
         List<CommandAction> cmds = new List<CommandAction>();
         cmds.AddRange(MaestroTerminal.DEFAULT_COMMAND_ACTIONS);
         cmds.Add(new Command_Gen());
+        cmds.Add(new Command_Test());
+
         MaestroTerminal.InitiateThread("maestro testbed", rwProvider, cmds.ToArray());
+    }
+
+    private class Command_Test : CommandAction 
+    {
+        public override string Keyword => "test";
+        public override uint RequiredArgCount => 0;
+        public override string Description => "Testing various features.";
+
+        public override bool Invoke(object invoker, string[] args)
+        {
+            MaestroLogger.PrintWarning("printing test", invoker);
+            foreach (string s in args)
+                MaestroLogger.Print(s);
+            return true;
+        }
     }
 
     private class Command_Gen: CommandAction

@@ -66,8 +66,10 @@ namespace Maestro
 
         private string[] ParseArguments(string statement)
         {
-            string buffer = statement.Trim();
-            string[] args = buffer.Split(_argumentDelimiter);
+            string trimmed = statement.Trim();           
+            string[] args = trimmed.Split(_argumentDelimiter);
+            for (int i = 0; i < args.Length; i++)
+                args[i] = args[i].Replace("::", " ");
             return args;
         }
 

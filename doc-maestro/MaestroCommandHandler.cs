@@ -14,8 +14,7 @@
         public bool ParseAndExecute(string source, object invokeAuthorizer)
         {
             MaestroParser parser = new MaestroParser(source, COMMAND_DELIMITER, ARGUMENT_DELIMITER);
-            var commands = parser.parsedCommands;
-            foreach (var cmd in commands)
+            foreach (var cmd in parser.parsedCommands)
             {
                 CommandAction cmdAction = Array.Find(commandActions, c => c.Keyword == cmd.keyword)!;
                 if (cmdAction == null || cmd.arguments.Length < cmdAction.RequiredArgCount)
