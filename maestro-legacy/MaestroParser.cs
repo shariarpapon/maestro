@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Maestro
+namespace MaestroCommandliner
 {
     public class ParsedCommand 
     {
@@ -18,61 +18,66 @@ namespace Maestro
         private readonly string _source;
         private readonly char _commandDelimiter;
         private readonly char _argumentDelimiter;
+        private readonly string _whiteSpaceSequence;
+
         public readonly ParsedCommand[] parsedCommands;
 
-        private const char _DEFAULT_COMMAND_DELIMITER = '&';
-        private const char _DEFAULT_ARGUMENT_DELIMITER = ' ';
-
-        public MaestroParser(string source)
-            :this(source, _DEFAULT_COMMAND_DELIMITER, _DEFAULT_ARGUMENT_DELIMITER) {}
-
-        public MaestroParser(string source, char commandDelimiter, char argumentDelimiter)
+        public MaestroParser(string source, char commandDelimiter, char argumentDelimiter, string whiteSpaceSequence)
         {
             if (string.IsNullOrEmpty(source))
                 throw new System.Exception("Cannot initialize parser, source string cannot be null.");
             _source = FormatSource(source);
             _commandDelimiter = commandDelimiter;
             _argumentDelimiter = argumentDelimiter;
+            _whiteSpaceSequence = whiteSpaceSequence;
             parsedCommands = ParseCommands();
         }
 
-        public ParsedCommand[] ParseCommands() 
+        //Parse all the commands from the source
+        private ParsedCommand[] ParseCommands() 
         {
-            string[] commandStatements = ParseStatements();
-            if (commandStatements.Length <= 0)
+            string[] statements = ParseStatements();
+            if (statements.Length <= 0)
                 return null!;
-            List<ParsedCommand> parsed = new List<ParsedCommand>();
+            List<ParsedCommand> commands = new List<ParsedCommand>();
             HashSet<string> tracker = new HashSet<string>();
-            for (int i = 0; i < commandStatements.Length; i++)
+            for (int i = 0; i < statements.Length; i++)
             {
-                if (tracker.Contains(commandStatements[i]))
+                if (tracker.Contains(statements[i]))
                     continue;
-                string[] args = ParseArguments(commandStatements[i]);
+                string[] args = ParseArguments(statements[i]);
                 string keyword = args[0];
                 args = args.Skip(1).ToArray();
-                parsed.Add(new ParsedCommand(keyword, args));
-                tracker.Add(commandStatements[i]);
+                commands.Add(new ParsedCommand(keyword, args));
+                tracker.Add(statements[i]);
             }
-            return parsed.ToArray();
+            return commands.ToArray();
         }
 
+        //Parse statements from given commands
         private string[] ParseStatements()
         {
-            string buffer = _source;
-            buffer = TrimRightOf(buffer, _commandDelimiter);
-            buffer = TrimLeftOf(buffer, _commandDelimiter);
-            return buffer.Split(_commandDelimiter);
+            string input = _source;
+            input = TrimRightOf(input, _commandDelimiter);
+            input = TrimLeftOf(input, _commandDelimiter);
+            return input.Split(_commandDelimiter);
         }
 
+        //Parse arguments from given statement
         private string[] ParseArguments(string statement)
         {
             string trimmed = statement.Trim();           
             string[] args = trimmed.Split(_argumentDelimiter);
+            //Prase white spaces
             for (int i = 0; i < args.Length; i++)
-                args[i] = args[i].Replace("::", " ");
+                args[i] = args[i].Replace(_whiteSpaceSequence, " ");
             return args;
         }
 
+        /// <summary>
+        /// Formats the source string for parsing.
+        /// </summary>
+        /// <returns>The formatted string.</returns>
         private static string FormatSource(string source)
         {
             string trimmedSource = source.Trim();
@@ -99,7 +104,11 @@ namespace Maestro
             return buffer.ToString();
         }
 
-        private static string TrimRightOf(string input, char delimiter)
+        /// <summary>
+        /// Trims white spaces on the right of the target character.
+        /// </summary>
+        /// <returns>The trimmed string.</returns>
+        private static string TrimRightOf(string input, char target)
         {
             StringBuilder buffer = new StringBuilder(input.Length);
             bool trim = false;
@@ -115,7 +124,7 @@ namespace Maestro
                     }
                     continue;
                 }
-                else if (c == delimiter)
+                else if (c == target)
                 {
                     trim = true;
                     buffer.Append(c);
@@ -126,7 +135,11 @@ namespace Maestro
             return buffer.ToString();
         }
 
-        private static string TrimLeftOf(string input, char delimiter)
+        /// <summary>
+        /// Trims white spaces on the left of the target character.
+        /// </summary>
+        /// <returns>The trimmed string.</returns>
+        private static string TrimLeftOf(string input, char target)
         {
             StringBuilder buffer = new StringBuilder(input.Length);
             bool trim = false;
@@ -142,7 +155,7 @@ namespace Maestro
                     }
                     continue;
                 }
-                else if (c == delimiter)
+                else if (c == target)
                 {
                     trim = true;
                     buffer.Append(c);

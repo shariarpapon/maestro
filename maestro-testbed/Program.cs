@@ -1,70 +1,66 @@
-﻿using Maestro;
+﻿using Everime.Maestro;
 
-public static class Program 
+namespace MaestroTestbed
 {
-    public static void Main() 
+    public class Program
     {
-        RWProvider rwProvider = new RWProvider(Console.Write, Console.WriteLine, Console.ReadLine!);
-        List<CommandAction> cmds = new List<CommandAction>();
-        cmds.AddRange(MaestroTerminal.DEFAULT_COMMAND_ACTIONS);
-        cmds.Add(new Command_Gen());
-        cmds.Add(new Command_Test());
-
-        MaestroTerminal.InitiateThread("maestro testbed", rwProvider, cmds.ToArray());
-    }
-
-    private class Command_Test : CommandAction 
-    {
-        public override string Keyword => "test";
-        public override uint RequiredArgCount => 0;
-        public override string Description => "Testing various features.";
-
-        public override bool Invoke(object invoker, string[] args)
+        public static void Main(string[] args)
         {
-            MaestroLogger.PrintWarning("printing test", invoker);
-            foreach (string s in args)
-                MaestroLogger.Print(s);
-            return true;
-        }
-    }
+            Console.WriteLine("### Initiating Maestro Terminal Test ###");
 
-    private class Command_Gen: CommandAction
-    {
-        public override string Keyword => "gen";
-        public override uint RequiredArgCount => 2;
-        public override string Description =>
-            "Generates a documentation file from the source file and saves it to the given output path.\n" +
-            "1: source file path\n" +
-            "2: output file path";
+            IOProvider ioProvider = new IOProvider(Console.ReadLine!, Console.WriteLine, Console.Clear);
 
-        public override bool Invoke(object invoker, string[] args) 
-        {
-            try
+            IMaestroCommand[] commands = new IMaestroCommand[]
             {
-                string sourcePath = args[0];
-                string outputPath = args[1];
-                string dir = Path.GetDirectoryName(outputPath)!;
-                if (!File.Exists(sourcePath))
-                {
-                    BuiltInMessages.FileNotFoundError(sourcePath);
-                    return false;
-                }
-                else if (!Directory.Exists(dir)) 
-                {
-                    BuiltInMessages.DirectoryNotFoundError(dir);
-                    return false;
-                }
+                new CMD_PrintInput(),
+                new CMD_CopyFile()
+            };
 
-                string source = File.ReadAllText(sourcePath);
-                string output = "_TEST_MAESTRO_OUTPUT_\n" + source;
-                File.WriteAllText(outputPath, output);
-                MaestroLogger.PrintInfo("doc generation successful", Keyword);
+            MaestroConfigurations config = MaestroConfigurations.Create(ioProvider, commands)
+                                                                  .SetHelpKeyword("help")
+                                                                  .SetPrintCommandExecutionResults(true);
+            var terminal = new MaestroTerminal(config);
+            
+            while (true) 
+            {
+                terminal.ScanInput();
+            }
+        }
+
+        class CMD_PrintInput : IMaestroCommand
+        {
+            public string Keyword => "input";
+
+            public uint MinimumArgumentCount => 1;
+
+            public string Description => "Prints all the inputs";
+
+            public bool Execute(MaestroTerminal terminal, string[] args)
+            {
+                foreach (string arg in args)
+                    terminal.IoProvider.Output(arg);
                 return true;
             }
-            catch 
+        }
+
+        class CMD_CopyFile : IMaestroCommand
+        {
+            public string Keyword => "copy";
+
+            public uint MinimumArgumentCount => 2;
+
+            public bool Execute(MaestroTerminal terminal, string[] args)
             {
-                MaestroLogger.PrintError("unable to execute command", Keyword);
-                return false;
+                string source = args[0];
+                string dest = args[1];
+                if (source == dest)
+                {
+                    terminal.IoProvider.Output("File with same name already exists in the destination path.");
+                    return false;
+                }
+
+                File.Copy(source, dest);
+                return true;
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace Maestro
+﻿namespace MaestroCommandliner
 {
     public sealed class MaestroMessage
     {

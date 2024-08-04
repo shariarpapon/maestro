@@ -1,4 +1,4 @@
-﻿namespace Maestro
+﻿namespace MaestroCommandliner
 {
     public static class BuiltInMessages
     {

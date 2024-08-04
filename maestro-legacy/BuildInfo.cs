@@ -1,8 +1,8 @@
-﻿namespace Maestro
+﻿namespace MaestroCommandliner
 {
     public static class BuildInfo
     {
-        public const string VERSION = "1.0.0";
+        public const string VERSION = "u1.0.0";
         public const string AUTHOR = "Shariar Papon";
 
         public new static string ToString()

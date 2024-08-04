@@ -1,7 +1,6 @@
-﻿using System.Runtime.Serialization;
-using System.Text;
+﻿using System.Text;
 
-namespace Maestro
+namespace MaestroCommandliner
 {
     public class RWProvider 
     {
@@ -19,19 +18,10 @@ namespace Maestro
 
     public class MaestroTerminal
     {
-        private const string INTRO_TITLE =
-         "+=============================+\n" +
-         "|       Maestro Terminal      |\n" +
-         "+=============================+\n" +
-         "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
-
         private static MaestroTerminal _Instance = null!;
         private static bool _IsProcessing = false;
-        private readonly MaestroMessage _introMessage = new MaestroMessage(INTRO_TITLE, ConsoleColor.Cyan, default);
 
         private bool _running;
-        private string _title;
-        private MaestroLogger _logger;
         private readonly HashSet<object> _authorizedInvokers;
         private readonly Queue<MaestroMessage> _messageBuffer;
         private string _selfInvoker = null!;
@@ -39,6 +29,7 @@ namespace Maestro
         private Action<object> _lineWriter;
         private Func<object> _lineReader;
         private MaestroCommandHandler _commandHandler;
+        private MaestroLogger _logger;
 
         public static readonly CommandAction[] DEFAULT_COMMAND_ACTIONS  = 
         {
@@ -47,9 +38,8 @@ namespace Maestro
             new Command_Help()
         };
 
-        private MaestroTerminal(string title, RWProvider rwProvider, params CommandAction[] cmdActions)
+        private MaestroTerminal(RWProvider rwProvider, params CommandAction[] cmdActions)
         {
-            _title = title;
             _charWriter = rwProvider.charWriter;
             _lineWriter = rwProvider.lineWriter;
             _lineReader = rwProvider.lineReader;
@@ -58,52 +48,41 @@ namespace Maestro
             _messageBuffer = new Queue<MaestroMessage>();
             _authorizedInvokers = new HashSet<object>();
 
-            Console.Title = _title;
             _selfInvoker = GenerateSelfInvoker();
             _authorizedInvokers.Add(_selfInvoker);
             _authorizedInvokers.Add(_logger);
             _commandHandler = new MaestroCommandHandler(cmdActions == null || cmdActions.Length <=0 ? DEFAULT_COMMAND_ACTIONS : cmdActions);
         }
 
-        public static void Initiate(string title, RWProvider rwProvider, CommandAction[] cmdActions)
+        public static void Initiate(RWProvider rwProvider, CommandAction[] cmdActions)
         {
             if (_Instance == null && !_IsProcessing)
             {
                 _IsProcessing = true;
-                _Instance = new MaestroTerminal(title, rwProvider, cmdActions);
+                _Instance = new MaestroTerminal(rwProvider, cmdActions);
             }
-            else
-            {
-                BuiltInMessages.TerminalAlreadyExistsError(_Instance!._title);
-                return;
-            }
-            TerminalWrite(_Instance._introMessage);
-            StartMainLoop();
+            else { return; }
+            MainLoop();
         }
 
-        public static void InitiateThread(string title, RWProvider rwProvider, CommandAction[] cmdActions)
+        public static void InitiateThread(RWProvider rwProvider, CommandAction[] cmdActions)
         {
             if (_Instance == null && !_IsProcessing)
             {
                 _IsProcessing = true;
-                _Instance = new MaestroTerminal(title, rwProvider, cmdActions);
+                _Instance = new MaestroTerminal(rwProvider, cmdActions);
             }
-            else
-            {
-                BuiltInMessages.TerminalAlreadyExistsError(_Instance!._title);
-                return;
-            }
-            TerminalWrite(_Instance._introMessage);
-            new Thread(StartMainLoop).Start();
+            else { return; }
+            new Thread(MainLoop).Start();
         }
 
-        private static void StartMainLoop()
+        private static void MainLoop()
         {
             _Instance._running = true;
             while (_Instance._running)
             {
                 TerminalWrite(">> ", false);
-                if (PeekMessage())
+                if (PopMeassage())
                     continue;
                 ScanCommands();
             }
@@ -116,7 +95,7 @@ namespace Maestro
                 _Instance._commandHandler.ParseAndExecute(input, _Instance._selfInvoker);
         }
 
-        private static bool PeekMessage()
+        private static bool PopMeassage()
         {
             if (_Instance._messageBuffer.Count > 0)
             {
@@ -141,7 +120,7 @@ namespace Maestro
                 _Instance._lineWriter.Invoke(message.message);
             else
                 _Instance._charWriter.Invoke(message.message);
-            Console.ForegroundColor = prevFg; ;
+            Console.ForegroundColor = prevFg;
             Console.BackgroundColor = prevBg;
         }
 
@@ -275,3 +254,4 @@ namespace Maestro
         #endregion
     }
 }
+
