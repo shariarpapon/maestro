@@ -8,6 +8,6 @@
         /// <summary>
         /// Description to provide.
         /// </summary>
-        public string Description { get; }
+        string Description { get; }
     }
 }

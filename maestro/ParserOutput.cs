@@ -1,11 +1,14 @@
 ﻿namespace Everime.Maestro
 {
-    internal sealed class ParserOutput 
+    /// <summary>
+    /// Holds the output data of a parsed source.
+    /// </summary>
+    public sealed class ParserOutput
     {
         internal readonly ParseStatus status;
         internal readonly ParsedCommand[] commands;
 
-        internal ParserOutput(ParseStatus status, ParsedCommand[] commands) 
+        public ParserOutput(ParseStatus status, ParsedCommand[] commands) 
         {
             this.status = status;
             this.commands = commands;

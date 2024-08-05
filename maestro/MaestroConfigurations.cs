@@ -1,35 +1,40 @@
-﻿namespace Everime.Maestro
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Everime.Maestro
 {
     /// <summary>
     /// Provides all essential configurations needed to build the terminal and other non-essential perferences.
     /// </summary>
     public sealed class MaestroConfigurations
     {
-        internal readonly IOProvider ioProvider;
+        internal IMaestroParser parser;
+        internal readonly IMaestroIOHandler ioHandler;
         internal readonly IEnumerable<IMaestroCommand> commands;
-
-        internal string helpKeyword = string.Empty;
+        internal System.Action<CommandExecutionResult> onCommandExecutedCallback = null;
         internal bool printCommandExecutionResult = true;
-        internal ParsingSymbols parsingSymbols = ParsingSymbols.Default;
-        internal System.Action<CommandExecutionResult> onCommandExecutedCallback = null!;
+        internal bool printParserErrors = true;
+        internal string helpKeyword = "help";
+        internal string lineStarter = "> ";
 
-        private MaestroConfigurations(IOProvider ioProvider, IEnumerable<IMaestroCommand> commands) 
+        private MaestroConfigurations(IMaestroIOHandler ioHandler, IEnumerable<IMaestroCommand> commands) 
         {
-            if (ioProvider == null) 
-                throw new System.Exception("IO provider cannot be null.");
-
-            if (commands == null || commands.Count() <= 0) 
-                throw new System.Exception("No valid commands were passed in to the terminal builder.");
-
-            this.ioProvider = ioProvider;
+            parser = new MaestroParser();
+            this.ioHandler = ioHandler;
             this.commands = commands;
         }
 
-        /// <param name="ioProvider">This will provide the terminal with the input reader and output writer methods.</param>
+        /// <param name="ioHandler">This will provide the terminal with the input reader and output writer methods.</param>
         /// <param name="commands">All valid commands this terminal can execute.</param>
-        public static MaestroConfigurations Create(IOProvider ioProvider, IEnumerable<IMaestroCommand> commands) 
+        public static MaestroConfigurations Create(IMaestroIOHandler ioHandler, IEnumerable<IMaestroCommand> commands) 
         {
-            return new MaestroConfigurations(ioProvider, commands);
+            if (ioHandler == null)
+                throw new System.Exception("IO provider cannot be null.");
+
+            if (commands == null || commands.Count() <= 0)
+                throw new System.Exception("No valid commands were passed in to the terminal builder.");
+
+            return new MaestroConfigurations(ioHandler, commands);
         }
 
         /// <summary>
@@ -43,7 +48,7 @@
         }
 
         /// <summary>
-        /// Set a keyword for the typical "help" commands in a terminal which prints out all the valid commands and their descriptions.
+        /// Set a keyword for the typical "help" commands in a terminal which prints out all the valid commands and their descriptions (default: <b>help</b>).
         /// </summary>
         /// <param name="helpKeyword">Help command keyword</param>
         public MaestroConfigurations SetHelpKeyword(string helpKeyword) 
@@ -52,25 +57,15 @@
             return this;
         }
 
-        /// <summary>
-        /// Parsing symbols essentially defines what kind of format the commands are going to be in.
-        /// </summary>
-        /// <param name="parsingSymbols">The parsing symbols to be assigned to the parser.</param>
-        public MaestroConfigurations SetParsingSymbols(ParsingSymbols parsingSymbols)
-        {
-            this.parsingSymbols = parsingSymbols;
-            return this;
-        }
 
         /// <summary>
-        /// Parsing symbols essentially defines what kind of format the commands are going to be in.
+        /// Set a new parser for the terminal to use.
+        /// <br>By default it uses the MaestroParser.</br>
         /// </summary>
-        /// <param name="commandDelimiter">Multiple commands on the same line are seperated by this character.</param>
-        /// <param name="identifierDelimiter">Identifiers are seperated by this character.</param>
-        /// <param name="whitespacePlaceholder">This character should be inserted in-place of whitespaces when inputting commands.</param>
-        public MaestroConfigurations SetParsingSymbols(char commandDelimiter, char identifierDelimiter, string whitespacePlaceholder)
+        /// <param name="parser">A IMaestroParser object which defines the parsing methods.</param>
+        public MaestroConfigurations SetParser(IMaestroParser parser) 
         {
-            SetParsingSymbols(new ParsingSymbols(commandDelimiter, identifierDelimiter, whitespacePlaceholder));
+            this.parser = parser;
             return this;
         }
 
@@ -81,6 +76,27 @@
         public MaestroConfigurations SetPrintCommandExecutionResults(bool printResults) 
         {
             printCommandExecutionResult = printResults;
+            return this;
+        }
+
+        /// <summary>
+        /// A string that will be printed at the begining of every line on the terminal output.(default: <b>'> '</b>).
+        /// </summary>
+        /// <param name="lineStarter"></param>
+        /// <returns></returns>
+        public MaestroConfigurations SetLineStarter(string lineStarter) 
+        {
+            this.lineStarter = lineStarter;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets boolean flag for whether the terminal should be print any parser errors or not.
+        /// </summary>
+        /// <param name="printParserErrors">If true, the terminal will print out the parse-status if parsing is not succesful.</param>
+        public MaestroConfigurations SetPrintParserErrors(bool printParserErrors)
+        {
+            this.printParserErrors = printParserErrors;
             return this;
         }
     }

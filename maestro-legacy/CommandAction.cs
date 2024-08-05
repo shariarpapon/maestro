@@ -1,4 +1,4 @@
-﻿namespace MaestroCommandliner
+﻿namespace Everime.Maestro.Legacy
 {
     public abstract class CommandAction
     {

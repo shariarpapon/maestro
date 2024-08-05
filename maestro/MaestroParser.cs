@@ -1,31 +1,23 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Everime.Maestro
 {
-    internal sealed class MaestroParser
+    internal sealed class MaestroParser : IMaestroParser
     {
-        private readonly char _commandDelimiter;
-        private readonly char _identifierDelimiter;
-        private readonly string _whitespacePlaceholder;
-
-        internal MaestroParser(ParsingSymbols symbols)
-            : this(symbols.commandDelimiter, symbols.identifierDelimiter, symbols.whitespacePlaceholder) { }
-
-        internal MaestroParser(char commandDelimiter, char argumentDelimiter, string whitespacePlaceholder)
-        {
-            _commandDelimiter = commandDelimiter;
-            _identifierDelimiter = argumentDelimiter;
-            _whitespacePlaceholder = whitespacePlaceholder;
-        }
+        private readonly char _commandDelimiter = '&';
+        private readonly char _argumentDelimiter = ' ';
+        private readonly string _whitespacePlaceholder = "--";
 
         /// <summary>
         /// Parses the given source string and returns an output object containing the data.
         /// </summary>
         /// <param name="source">The string to parse.</param>
-        internal ParserOutput Parse(string source) 
+        public ParserOutput Parse(string source) 
         {
             if (string.IsNullOrEmpty(source))
-                return new ParserOutput(ParseStatus.SourceNullOrEmpty, null!);
+                return new ParserOutput(ParseStatus.SourceNullOrEmpty, null);
             source = FormatSource(source);
             ParseStatus status = ParseCommands(source, out ParsedCommand[] commands);
             return new ParserOutput(status, commands);
@@ -35,13 +27,13 @@ namespace Everime.Maestro
         private ParseStatus ParseCommands(string source, out ParsedCommand[] commands) 
         {
             string[] statements = ParseStatements(source);
-            commands = null!;
+            commands = null;
 
             if (statements.Length <= 0)
             {
                 return ParseStatus.NoValidStatementsFound;
             }
-
+            
             commands = new ParsedCommand[statements.Length];
             HashSet<string> tracker = new HashSet<string>();
             for (int i = 0; i < statements.Length; i++)
@@ -50,6 +42,8 @@ namespace Everime.Maestro
                     continue;
                 string[] args = ParseArguments(statements[i]);
                 string keyword = args[0];
+                if (string.IsNullOrEmpty(keyword))
+                    continue;
                 args = args.Skip(1).ToArray();
                 commands[i] = new ParsedCommand(keyword, args);
                 tracker.Add(statements[i]);
@@ -69,7 +63,7 @@ namespace Everime.Maestro
         private string[] ParseArguments(string statement)
         {
             string trimmed = statement.Trim();           
-            string[] args = trimmed.Split(_identifierDelimiter);
+            string[] args = trimmed.Split(_argumentDelimiter);
             //Prase white spaces
             for (int i = 0; i < args.Length; i++)
                 args[i] = args[i].Replace(_whitespacePlaceholder, " ");

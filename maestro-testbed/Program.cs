@@ -1,14 +1,33 @@
 ﻿using Everime.Maestro;
+using System;
+using System.IO;
 
 namespace MaestroTestbed
 {
     public class Program
     {
+        sealed class IO : IMaestroIOHandler
+        {
+            public void ClearInput()
+            {
+                Console.Clear();
+            }
+
+            public string Read()
+            {
+                return Console.ReadLine();
+            }
+
+            public void Write(string output)
+            {
+                Console.WriteLine(output);
+            }
+        }
+
+
         public static void Main(string[] args)
         {
             Console.WriteLine("### Initiating Maestro Terminal Test ###");
-
-            IOProvider ioProvider = new IOProvider(Console.ReadLine!, Console.WriteLine, Console.Clear);
 
             IMaestroCommand[] commands = new IMaestroCommand[]
             {
@@ -16,12 +35,9 @@ namespace MaestroTestbed
                 new CMD_CopyFile()
             };
 
-            MaestroConfigurations config = MaestroConfigurations.Create(ioProvider, commands)
-                                                                  .SetHelpKeyword("help")
-                                                                  .SetPrintCommandExecutionResults(true);
+            MaestroConfigurations config = MaestroConfigurations.Create(new IO(), commands);
             var terminal = new MaestroTerminal(config);
-            
-            while (true) 
+            while (true)
             {
                 terminal.ScanInput();
             }
@@ -38,7 +54,7 @@ namespace MaestroTestbed
             public bool Execute(MaestroTerminal terminal, string[] args)
             {
                 foreach (string arg in args)
-                    terminal.IoProvider.Output(arg);
+                    Console.WriteLine(arg);
                 return true;
             }
         }
@@ -55,7 +71,7 @@ namespace MaestroTestbed
                 string dest = args[1];
                 if (source == dest)
                 {
-                    terminal.IoProvider.Output("File with same name already exists in the destination path.");
+                    Console.WriteLine("File with same name already exists in the destination path.");
                     return false;
                 }
 

@@ -1,4 +1,6 @@
-﻿namespace Everime.Maestro
+﻿using System.Collections.Generic;
+
+namespace Everime.Maestro
 {
     internal sealed class CommandHandler
     {
@@ -26,8 +28,12 @@
         {
             try
             {
-                IMaestroCommand command = null!;
-                if (_commands.ContainsKey(parsedCommand.keyword))
+                IMaestroCommand command = null;
+                if (string.IsNullOrEmpty(parsedCommand.keyword))
+                {
+                    return new CommandExecutionResult(CommandExecutionStatus.KeywordNullOrEmpty, parsedCommand, null);
+                }
+                else if (_commands.ContainsKey(parsedCommand.keyword))
                 {
                     command = _commands[parsedCommand.keyword];
                     if (parsedCommand.argumentCount < command.MinimumArgumentCount)
@@ -39,12 +45,12 @@
                 }
                 else
                 {
-                    return new CommandExecutionResult(CommandExecutionStatus.KeywordNotFound, parsedCommand, null!);
+                    return new CommandExecutionResult(CommandExecutionStatus.KeywordNotFound, parsedCommand, null);
                 }
             }
-            catch (Exception exception)
+            catch (System.Exception exception)
             {
-                return new CommandExecutionResult(CommandExecutionStatus.FatalError, parsedCommand, null!, exception);
+                return new CommandExecutionResult(CommandExecutionStatus.FatalError, parsedCommand, null, exception);
             }
         }
 

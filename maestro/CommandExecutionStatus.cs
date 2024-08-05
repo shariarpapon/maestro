@@ -5,6 +5,7 @@
         Successful,
         FatalError,
         KeywordNotFound,
+        KeywordNullOrEmpty,
         InvalidArgumentCount,
         FailedExecution
     }

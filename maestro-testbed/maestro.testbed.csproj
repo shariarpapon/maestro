@@ -4,13 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>maestro_testbed</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="everime.maestro">
-      <HintPath>..\maestro\bin\Debug\net6.0\everime.maestro.dll</HintPath>
+      <HintPath>..\maestro\bin\Debug\net481\everime.maestro.dll</HintPath>
     </Reference>
   </ItemGroup>
 

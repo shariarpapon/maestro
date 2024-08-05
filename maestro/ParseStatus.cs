@@ -1,6 +1,6 @@
 ﻿namespace Everime.Maestro
 {
-    internal enum ParseStatus 
+    public enum ParseStatus 
     { 
         SourceNullOrEmpty = 0,
         NoValidStatementsFound,

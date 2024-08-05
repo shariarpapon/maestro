@@ -5,7 +5,7 @@
         public readonly CommandExecutionStatus executionStatus;
         public readonly IMaestroCommand commandDefinition;
         public readonly ParsedCommand parsedCommand;
-        public readonly Exception exception = null!;
+        public readonly System.Exception exception = null;
 
         internal CommandExecutionResult(CommandExecutionStatus executionStatus, ParsedCommand parsedCommand, IMaestroCommand commandDefinition) 
         {
@@ -14,7 +14,7 @@
             this.commandDefinition = commandDefinition;
         }
 
-        internal CommandExecutionResult(CommandExecutionStatus executionStatus, ParsedCommand parsedCommand, IMaestroCommand commandDefinition, Exception exception)
+        internal CommandExecutionResult(CommandExecutionStatus executionStatus, ParsedCommand parsedCommand, IMaestroCommand commandDefinition, System.Exception exception)
         {
             this.executionStatus = executionStatus;
             this.parsedCommand = parsedCommand;

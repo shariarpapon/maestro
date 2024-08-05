@@ -1,4 +1,8 @@
 ﻿using System.Text;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+using System.Threading.Tasks;
 
 namespace Everime.Maestro
 {
@@ -12,12 +16,10 @@ namespace Everime.Maestro
         /// A globally unique identifier for this terminal.
         /// </summary>
         public readonly string GUID;
-        public IOProvider IoProvider => _configurations.ioProvider;
         public IEnumerable<IMaestroCommand> Commands => _configurations.commands;
-
         private MaestroConfigurations _configurations;
-        private MaestroParser _parser;
         private CommandHandler _commandHandler;
+        private IMaestroIOHandler _ioHandler;
 
         /// <summary>
         /// Initialize the terminal with the given configurations.
@@ -26,24 +28,40 @@ namespace Everime.Maestro
         {
             GUID = GenerateUID();
             _configurations = configurations;
-            _parser = new MaestroParser(configurations.parsingSymbols);
+
+            _ioHandler = _configurations.ioHandler;
             _commandHandler = new CommandHandler(this, configurations.commands);
         }
 
         /// <summary>
         /// Scans the terminal input for input submission character (default: <b>\n</b>).
-        /// <br>Upon submission, the input will be cleared and scanned for valid commands and executed if any were found.</br>
+        /// <br>Upon submission, the input will be scanned for commands and the inputfield will be cleared to prevent repeated scanning of the same command.</br>
         /// </summary>
         public void ScanInputSubmission(char submissionChar = '\n') 
         {
-            string input = IoProvider.Input();
-            if (string.IsNullOrEmpty(input))
+            string input = _ioHandler.Read();
+            if (!IsInputSubmitted(submissionChar, ref input))
                 return;
-            if (input[input.Length - 1] == submissionChar)
+
+            _ioHandler.ClearInput();
+            Scan(input);
+        }
+
+        /// <summary>
+        /// Asynchronously scans the terminal inputfield for the submission character (default: <b>\n</b>).
+        /// <br>Upon submission, the input will be scanned for commands and the inputfield will be cleared to prevent repeated scanning of the same command.</br>
+        /// </summary>
+        /// <returns>An awaitable task.</returns>
+        public async Task ScanInputSubmissionAsync(char submissionChar = '\n')
+        {
+            string input = _ioHandler.Read();
+            while (!IsInputSubmitted(submissionChar, ref input)) 
             {
-                IoProvider.ClearInput();
-                Scan(input);
+                input = _ioHandler.Read();
+                await Task.Yield();
             }
+            _ioHandler.ClearInput();
+            Scan(input);
         }
 
         /// <summary>
@@ -52,7 +70,7 @@ namespace Everime.Maestro
         /// </summary>
         public void ScanInput() 
         {
-            Scan(IoProvider.Input());
+            Scan(_ioHandler.Read());
         }
 
         /// <summary>
@@ -62,15 +80,17 @@ namespace Everime.Maestro
         /// <param name="source">The source string to be scanned.</param>
         public void Scan(string source) 
         {
-            if (!string.IsNullOrEmpty(_configurations.helpKeyword) && source == _configurations.helpKeyword)
+            //Check for predefined commands
+            if (WasPredefinedCommandExecuted(source))
+                return;
+
+            ParserOutput parserOutput = _configurations.parser.Parse(source);
+            if (parserOutput.status != ParseStatus.Successful)
             {
-                IoProvider.Output(GetCommandInformation());
+                if(_configurations.printParserErrors)
+                    TerminalWrite($"Unable to parse source string (status: {parserOutput.status}).");
                 return;
             }
-
-            ParserOutput parserOutput = _parser.Parse(source);
-            if (parserOutput.status != ParseStatus.Successful)
-                return;
 
             CommandExecutionResult[] results = _commandHandler.Execute(parserOutput.commands);
 
@@ -83,6 +103,17 @@ namespace Everime.Maestro
             }
         }
 
+
+        /// <summary>
+        /// Writes the given string to the terminal output.
+        /// </summary>
+        public void TerminalWrite(string output) 
+        {
+            if (!string.IsNullOrEmpty(_configurations.lineStarter))
+                output = $"{_configurations.lineStarter}{output}";
+            _ioHandler.Write(output);
+        }
+
         /// <summary>
         /// Prints out information of all the commands as defined.
         /// </summary>
@@ -91,57 +122,83 @@ namespace Everime.Maestro
         {
             if (Commands.Count() <= 0)
                 return string.Empty;
-
-            StringBuilder buffer = new StringBuilder("COMMANDS\n\n");
+            const string line = "------------------------------------";
+            StringBuilder buffer = new StringBuilder($"COMMANDS\n{line}\n");
             string space = "    ";
             foreach (var cmd in Commands) 
             {
-                buffer.AppendLine($"{space}Command: {cmd.Keyword}");
-                buffer.AppendLine($"{space}Minimum Arguments: {cmd.MinimumArgumentCount}");
+                buffer.AppendLine($"{space}{cmd.Keyword}");
+                buffer.AppendLine($"{space}min args: {cmd.MinimumArgumentCount}");
                 if (cmd is ICommandDescriptionProvider) 
                     buffer.AppendLine($"{space}{((ICommandDescriptionProvider)cmd).Description}");                
-                buffer.AppendLine("---");
+                buffer.AppendLine(line);
             }
             return buffer.ToString();
         }
 
-        /// <summary>
-        /// Updates the parsing symbols to the given one.
-        /// </summary>
-        public void UpdateParsingSymbols(ParsingSymbols parsingSymbols) 
+        /// <returns>True, if a predefined command was found and executed.</returns>
+        private bool WasPredefinedCommandExecuted(string source) 
         {
-            _parser = new MaestroParser(parsingSymbols);
+            if (!string.IsNullOrEmpty(_configurations.helpKeyword) && source == _configurations.helpKeyword)
+            {
+                TerminalWrite(GetCommandInformation());
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if input has entered the submission character. If so, the input removes the submission character and returns true.
+        /// </summary>
+        /// <returns>True, if submission character was detected.</returns>
+        private bool IsInputSubmitted(char submissionChar, ref string input)
+        { 
+            if (!string.IsNullOrEmpty(input) && input[input.Length - 1] == submissionChar)
+            {
+                input = input.Remove(input.Length - 1);
+                return true;
+            }
+            return false;
         }
         
+        /// <summary>
+        /// Prints information based on the execution result to the terminal output.
+        /// </summary>
         private void PrintCommandExecutionResult(CommandExecutionResult result) 
         {
             switch (result.executionStatus)
             {
+                default:
+                    TerminalWrite($"[{result.parsedCommand.keyword}] status: {result.executionStatus}. " + result.exception?.Message);
+                    break;
                 case CommandExecutionStatus.Successful:
-                    IoProvider.Output($"<{result.parsedCommand.keyword}> executed succesfully.");
+                    TerminalWrite($"[{result.parsedCommand.keyword}] executed succesfully.");
                     break;
                 case CommandExecutionStatus.FailedExecution:
-                    IoProvider.Output($"<{result.parsedCommand.keyword}> execution failed.");
+                    TerminalWrite($"[{result.parsedCommand.keyword}] execution failed.");
                     break;
                 case CommandExecutionStatus.InvalidArgumentCount:
-                    IoProvider.Output($"<{result.parsedCommand.keyword}> <entered: {result.parsedCommand.argumentCount}> <req: {result.commandDefinition.MinimumArgumentCount}> does not meet minimum argument count.");
+                    TerminalWrite($"[{result.parsedCommand.keyword}] does not meet required argument count. [entered: {result.parsedCommand.argumentCount}] [req: {result.commandDefinition.MinimumArgumentCount}] ");
                     break;
                 case CommandExecutionStatus.KeywordNotFound:
-                    IoProvider.Output($"<{result.parsedCommand.keyword}> keyword not found.");
+                    TerminalWrite($"[{result.parsedCommand.keyword}] keyword not found.");
                     break;
                 case CommandExecutionStatus.FatalError:
                     if(result.exception != null)
-                        IoProvider.Output("fatal: " + result.exception.Message);
+                        TerminalWrite($"[{result.parsedCommand.keyword}] fatal: " + result.exception.Message);
                     break;
             }
         }
 
+        /// <summary>
+        /// Generates a globally unique identifier for this terminal.
+        /// </summary>
+        /// <returns>The generated GUID.</returns>
         private string GenerateUID()
         {
-            return $"{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}" +
+            return $"{DateTime.UtcNow}" +
                    $"/{Guid.NewGuid()}" +
-                   $"/{GetHashCode()}" +
-                   $"/{new System.Random(DateTime.UtcNow.Millisecond).NextInt64()}";
+                   $"/{GetHashCode()}";
         }
     }
 }
