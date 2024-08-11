@@ -6,22 +6,13 @@ namespace MaestroTestbed
 {
     public class Program
     {
-        sealed class IO : IMaestroIOHandler
+        sealed class ConsoleIO : IMaestroIOHandler
         {
-            public void ClearInput()
-            {
-                Console.Clear();
-            }
+            public void ClearInput() => Console.Clear();
 
-            public string Read()
-            {
-                return Console.ReadLine();
-            }
+            public string Read() => Console.ReadLine();
 
-            public void Write(string output)
-            {
-                Console.WriteLine(output);
-            }
+            public void Write(string output) => Console.WriteLine(output);
         }
 
 
@@ -35,14 +26,18 @@ namespace MaestroTestbed
                 new CMD_CopyFile()
             };
 
-            MaestroConfigurations config = MaestroConfigurations.Create(new IO(), commands);
+            MaestroConfigurations.Create(new ConsoleIO(), commands)
+                                 .SetPrintParserErrors(true)
+                                 .SetPrintCommandExecutionResults(true)
+                                 .Store(out MaestroConfigurations config);
+             
             var terminal = new MaestroTerminal(config);
             while (true)
             {
                 terminal.ScanInput();
             }
         }
-
+        
         class CMD_PrintInput : IMaestroCommand
         {
             public string Keyword => "input";

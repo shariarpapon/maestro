@@ -1,4 +1,6 @@
-﻿namespace Everime.Maestro
+﻿using System.Text;
+
+namespace Everime.Maestro
 {
     public readonly struct ParsedCommand
     {
@@ -10,6 +12,15 @@
             this.keyword = keyword;
             this.arguments = arguments;
             argumentCount = (uint)arguments.Length;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder buffer = new StringBuilder("keyword: " + keyword + "\n");
+            buffer.AppendLine("args:");
+            for(int i = 0; i < arguments.Length; i++)
+                buffer.AppendLine(arguments[i]);
+            return buffer.ToString();
         }
     }
 }

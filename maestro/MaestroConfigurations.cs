@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Everime.Maestro
 {
@@ -8,9 +9,10 @@ namespace Everime.Maestro
     /// </summary>
     public sealed class MaestroConfigurations
     {
-        internal IMaestroParser parser;
         internal readonly IMaestroIOHandler ioHandler;
         internal readonly IEnumerable<IMaestroCommand> commands;
+
+        internal IMaestroParser parser = new MaestroDefaultParser();
         internal System.Action<CommandExecutionResult> onCommandExecutedCallback = null;
         internal bool printCommandExecutionResult = true;
         internal bool printParserErrors = true;
@@ -19,7 +21,6 @@ namespace Everime.Maestro
 
         private MaestroConfigurations(IMaestroIOHandler ioHandler, IEnumerable<IMaestroCommand> commands) 
         {
-            parser = new MaestroParser();
             this.ioHandler = ioHandler;
             this.commands = commands;
         }
@@ -35,6 +36,16 @@ namespace Everime.Maestro
                 throw new System.Exception("No valid commands were passed in to the terminal builder.");
 
             return new MaestroConfigurations(ioHandler, commands);
+        }
+
+        /// <summary>
+        /// Stores this object in the out instance.
+        /// </summary>
+        /// <param name="instance">The instance of this object</param>
+        public MaestroConfigurations Store(out MaestroConfigurations instance) 
+        {
+            instance = this;
+            return this;
         }
 
         /// <summary>
